@@ -778,3 +778,8 @@ asyncTest( 'execute a cached script when execute: true', 2, function() {
 		});
 	});
 });
+
+asyncTest( 'set default expiration', 1, function() {
+	ok( basket.setDefaultExpiration(50) === true, '50 hours was successfully set.');
+	start();
+});

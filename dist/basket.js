@@ -1,27 +1,26 @@
 /*!
-* basket.js
-* v0.5.2 - 2015-02-07
-* http://addyosmani.github.com/basket.js
-* (c) Addy Osmani;  License
-* Created by: Addy Osmani, Sindre Sorhus, Andrée Hansson, Mat Scales
-* Contributors: Ironsjp, Mathias Bynens, Rick Waldron, Felipe Morais
+* <%= pkg.name %>
+* v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>
+<%= pkg.homepage ? "* " + pkg.homepage + "\n" : "" %>* (c) <%= pkg.author.name %>; <%= _.pluck(pkg.licenses, "type").join(", ") %> License
+* Created by: <%= _.pluck(pkg.maintainers, "name").join(", ") %>
+* Contributors: <%= _.pluck(pkg.contributors, "name").join(", ") %>
 * Uses rsvp.js, https://github.com/tildeio/rsvp.js
 */(function( window, document ) {
 	'use strict';
 
-	var head = document.head || document.getElementsByTagName('head')[0];
-	var storagePrefix = 'basket-';
-	var defaultExpiration = 5000;
-	var inBasket = [];
+	const head = document.head || document.getElementsByTagName('head')[0];
+	const storagePrefix = 'basket-';
+	let defaultExpiration = 5000;
+	let inBasket = [];
 
-	var addLocalStorage = function( key, storeObj ) {
+	const addLocalStorage = function( key, storeObj ) {
 		try {
 			localStorage.setItem( storagePrefix + key, JSON.stringify( storeObj ) );
 			return true;
 		} catch( e ) {
 			if ( e.name.toUpperCase().indexOf('QUOTA') >= 0 ) {
-				var item;
-				var tempScripts = [];
+				let item;
+				let tempScripts = [];
 
 				for ( item in localStorage ) {
 					if ( item.indexOf( storagePrefix ) === 0 ) {
@@ -51,33 +50,33 @@
 
 	};
 
-	var getUrl = function( url ) {
-		var promise = new RSVP.Promise( function( resolve, reject ){
+	const getUrl = function( url ) {
+		const promise = new RSVP.Promise(function (resolve, reject) {
 
-			var xhr = new XMLHttpRequest();
-			xhr.open( 'GET', url );
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
 
-			xhr.onreadystatechange = function() {
-				if ( xhr.readyState === 4 ) {
-					if ( ( xhr.status === 200 ) ||
-							( ( xhr.status === 0 ) && xhr.responseText ) ) {
-						resolve( {
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					if ((xhr.status === 200) ||
+						((xhr.status === 0) && xhr.responseText)) {
+						resolve({
 							content: xhr.responseText,
 							type: xhr.getResponseHeader('content-type')
-						} );
+						});
 					} else {
-						reject( new Error( xhr.statusText ) );
+						reject(new Error(xhr.statusText));
 					}
 				}
 			};
 
 			// By default XHRs never timeout, and even Chrome doesn't implement the
 			// spec for xhr.timeout. So we do it ourselves.
-			setTimeout( function () {
-				if( xhr.readyState < 4 ) {
+			setTimeout(function () {
+				if (xhr.readyState < 4) {
 					xhr.abort();
 				}
-			}, basket.timeout );
+			}, basket.timeout);
 
 			xhr.send();
 		});
@@ -85,20 +84,8 @@
 		return promise;
 	};
 
-	var saveUrl = function( obj ) {
-		return getUrl( obj.url ).then( function( result ) {
-			var storeObj = wrapStoreData( obj, result );
-
-			if (!obj.skipCache) {
-				addLocalStorage( obj.key , storeObj );
-			}
-
-			return storeObj;
-		});
-	};
-
-	var wrapStoreData = function( obj, data ) {
-		var now = +new Date();
+	const wrapStoreData = function( obj, data ) {
+		const now = +new Date();
 		obj.data = data.content;
 		obj.originalType = data.type;
 		obj.type = obj.type || data.type;
@@ -109,15 +96,27 @@
 		return obj;
 	};
 
-	var isCacheValid = function(source, obj) {
+	const saveUrl = function( obj ) {
+		return getUrl( obj.url ).then( function( result ) {
+			const storeObj = wrapStoreData(obj, result);
+
+			if (!obj.skipCache) {
+				addLocalStorage( obj.key , storeObj );
+			}
+
+			return storeObj;
+		});
+	};
+
+	const isCacheValid = function(source, obj) {
 		return !source ||
 			source.expire - +new Date() < 0  ||
 			obj.unique !== source.unique ||
 			(basket.isValidItem && !basket.isValidItem(source, obj));
 	};
 
-	var handleStackObject = function( obj ) {
-		var source, promise, shouldFetch;
+	const handleStackObject = function( obj ) {
+		let source, promise, shouldFetch;
 
 		if ( !obj.url ) {
 			return;
@@ -125,7 +124,7 @@
 
 		obj.key =  ( obj.key || obj.url );
 		source = basket.get( obj.key );
-                
+
 		obj.execute = obj.execute !== false;
 
 		shouldFetch = isCacheValid(source, obj);
@@ -158,8 +157,8 @@
 		return promise;
 	};
 
-	var injectScript = function( obj ) {
-		var script = document.createElement('script');
+	const injectScript = function( obj ) {
+		const script = document.createElement('script');
 		script.defer = true;
 		// Have to use .text, since we support IE8,
 		// which won't allow appending to a script
@@ -167,11 +166,11 @@
 		head.appendChild( script );
 	};
 
-	var handlers = {
+	const handlers = {
 		'default': injectScript
 	};
 
-	var execute = function( obj ) {
+	const execute = function( obj ) {
 		if( obj.type && handlers[ obj.type ] ) {
 			return handlers[ obj.type ]( obj );
 		}
@@ -179,7 +178,7 @@
 		return handlers['default']( obj ); // 'default' is a reserved word
 	};
 
-	var performActions = function( resources ) {
+	const performActions = function( resources ) {
 		return resources.map( function( obj ) {
 			if( obj.execute ) {
 				execute( obj );
@@ -189,8 +188,8 @@
 		} );
 	};
 
-	var fetch = function() {
-		var i, l, promises = [];
+	const fetch = function() {
+		let i, l, promises = [];
 
 		for ( i = 0, l = arguments.length; i < l; i++ ) {
 			promises.push( handleStackObject( arguments[ i ] ) );
@@ -199,11 +198,11 @@
 		return RSVP.all( promises );
 	};
 
-	var thenRequire = function() {
-		var resources = fetch.apply( null, arguments );
-		var promise = this.then( function() {
+	const thenRequire = function() {
+		const resources = fetch.apply(null, arguments);
+		const promise = this.then(function () {
 			return resources;
-		}).then( performActions );
+		}).then(performActions);
 		promise.thenRequire = thenRequire;
 		return promise;
 	};
@@ -212,15 +211,15 @@
 		require: function() {
 			for ( var a = 0, l = arguments.length; a < l; a++ ) {
 				arguments[a].execute = arguments[a].execute !== false;
-				
+
 				if ( arguments[a].once && inBasket.indexOf(arguments[a].url) >= 0 ) {
 					arguments[a].execute = false;
-				} else if ( arguments[a].execute !== false && inBasket.indexOf(arguments[a].url) < 0 ) {  
+				} else if ( arguments[a].execute !== false && inBasket.indexOf(arguments[a].url) < 0 ) {
 					inBasket.push(arguments[a].url);
 				}
 			}
-                        
-			var promise = fetch.apply( null, arguments ).then( performActions );
+
+			const promise = fetch.apply(null, arguments).then(performActions);
 
 			promise.thenRequire = thenRequire;
 			return promise;
@@ -232,7 +231,7 @@
 		},
 
 		get: function( key ) {
-			var item = localStorage.getItem( storagePrefix + key );
+			const item = localStorage.getItem( storagePrefix + key );
 			try	{
 				return JSON.parse( item || 'false' );
 			} catch( e ) {
@@ -241,8 +240,8 @@
 		},
 
 		clear: function( expired ) {
-			var item, key;
-			var now = +new Date();
+			let item, key;
+			const now = +new Date();
 
 			for ( item in localStorage ) {
 				key = item.split( storagePrefix )[ 1 ];
@@ -269,6 +268,20 @@
 
 		removeHandler: function( types ) {
 			basket.addHandler( types, undefined );
+		},
+		/*
+		Set the default expiration for files in hours. By default it is 5000 hours. Changing this does not change currently cached files, so set it before loading files.
+		 */
+		setDefaultExpiration: function ( hours ) {
+			const intHours = parseInt(hours);
+
+			if (intHours >= 1) {
+				defaultExpiration = intHours;
+				return true;
+			} else {
+				console.log('Incorrect default expiration hours set.');
+				return false;
+			}
 		}
 	};
 

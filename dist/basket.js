@@ -282,6 +282,10 @@
 				console.log('Incorrect default expiration hours set.');
 				return false;
 			}
+		},
+
+		getDefaultExpiration: function () {
+			return defaultExpiration;
 		}
 	};
 

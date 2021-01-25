@@ -783,3 +783,21 @@ asyncTest( 'set default expiration', 1, function() {
 	ok( basket.setDefaultExpiration(50) === true, '50 hours was successfully set.');
 	start();
 });
+
+asyncTest( 'set the cache instance', 1, function() {
+	const instance = 'somethingrandom';
+
+	ok( basket.setCacheInstance(instance) === instance, 'Cache instance was set');
+	start();
+});
+
+asyncTest( 'with skipCDNCache: true, it appends a query to skip server caching', 1, function() {
+	basket.setCacheInstance('');
+	basket
+	.require({ url: 'fixtures/jquery.min.js', skipCDNCache: true })
+	.then(function() {
+		ok( basket.get('fixtures/jquery.min.js'), 'Data was fetched' );
+
+		start();
+	});
+});

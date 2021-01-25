@@ -14,6 +14,7 @@
 	let inBasket = [];
 	let skipCDN = false;
 	let cacheInstance = '';
+	let debug = false;
 
 	const addLocalStorage = function( key, storeObj ) {
 		try {
@@ -53,6 +54,10 @@
 	};
 
 	const getUrl = function( url ) {
+		if (debug) {
+			console.log('Basket Getting URL: ' + url + ', global skipCDNCache is: ' + skipCDN.toString());
+		}
+
 		const promise = new RSVP.Promise(function (resolve, reject) {
 			const xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
@@ -91,7 +96,6 @@
 		obj.originalType = data.type;
 		obj.type = obj.type || data.type;
 		obj.skipCache = obj.skipCache || false;
-		obj.skipCDNCache = obj.skipCDNCache || skipCDN;
 		obj.stamp = now;
 		obj.expire = now + ( ( obj.expire || defaultExpiration ) * 60 * 60 * 1000 );
 
@@ -103,7 +107,10 @@
 			const storeObj = wrapStoreData(obj, result);
 
 			if (!obj.skipCache) {
-				//console.log(`Adding to local storage with key ${obj.key}`);
+				if (debug) {
+					console.log('Adding to local storage with key ' + obj.key);
+				}
+
 				addLocalStorage( obj.key , storeObj );
 			}
 
@@ -127,6 +134,10 @@
 
 		obj.key =  ( obj.key || obj.url );
 
+		if (obj.skipCDNCache === undefined) {
+			obj.skipCDNCache = skipCDN;
+		}
+
 		if (obj.skipCDNCache) {
 			if (cacheInstance === '') {
 				obj.url = obj.url + '?_=' + Math.random().toString(36).substr(2, 5);
@@ -134,6 +145,12 @@
 				obj.url = obj.url + '?_=' + cacheInstance;
 			}
 		}
+
+		if (debug) {
+			console.log('Object URL is: ' + obj.url + ' | Obj skipCDNCache is: ' + obj.skipCDNCache);
+		}
+
+
 
 		source = basket.get( obj.key );
 
@@ -312,6 +329,11 @@
 
 		getCacheInstance: function () {
 			return cacheInstance;
+		},
+
+		enableDebug: function (d) {
+			debug = d === true;
+			return debug;
 		}
 	};
 

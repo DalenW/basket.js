@@ -793,6 +793,7 @@ asyncTest( 'set the cache instance', 1, function() {
 
 asyncTest( 'with skipCDNCache: true, it appends a query to skip server caching', 1, function() {
 	basket.setCacheInstance('');
+	basket.enableDebug(true);
 	basket
 	.require({ url: 'fixtures/jquery.min.js', skipCDNCache: true })
 	.then(function() {
@@ -800,4 +801,38 @@ asyncTest( 'with skipCDNCache: true, it appends a query to skip server caching',
 
 		start();
 	});
+});
+
+asyncTest( 'with global skipCDNCache: true, it appends a query to skip server caching', 1, function() {
+	basket.setCacheInstance('');
+	basket.setSkipCDNCache(true);
+	basket.enableDebug(true);
+	basket
+	.require({ url: 'fixtures/jquery.min.js'})
+	.then(function() {
+		ok( basket.get('fixtures/jquery.min.js'), 'Data was fetched' );
+
+		start();
+	});
+});
+
+asyncTest( 'with skipCDNCache: true and a custom cache instance', 1, function() {
+	basket.setCacheInstance('somethingrandom');
+	basket
+	.require({ url: 'fixtures/jquery.min.js', skipCDNCache: true })
+	.then(function() {
+		ok( basket.get('fixtures/jquery.min.js'), 'Data was fetched' );
+
+		start();
+	});
+});
+
+asyncTest( 'enable debug', 1, function() {
+	ok( basket.enableDebug(true) === true, 'Debug was enabled');
+	start();
+});
+
+asyncTest( 'disable debug', 1, function() {
+	ok( basket.enableDebug('false') === false, 'Debug was disabled');
+	start();
 });

@@ -12,6 +12,8 @@
 	const storagePrefix = 'basket-';
 	let defaultExpiration = 5000;
 	let inBasket = [];
+	let skipCDN = false;
+	let cacheInstance = '';
 
 	const addLocalStorage = function( key, storeObj ) {
 		try {
@@ -52,7 +54,6 @@
 
 	const getUrl = function( url ) {
 		const promise = new RSVP.Promise(function (resolve, reject) {
-
 			const xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
 
@@ -90,6 +91,7 @@
 		obj.originalType = data.type;
 		obj.type = obj.type || data.type;
 		obj.skipCache = obj.skipCache || false;
+		obj.skipCDNCache = obj.skipCDNCache || skipCDN;
 		obj.stamp = now;
 		obj.expire = now + ( ( obj.expire || defaultExpiration ) * 60 * 60 * 1000 );
 
@@ -101,6 +103,7 @@
 			const storeObj = wrapStoreData(obj, result);
 
 			if (!obj.skipCache) {
+				//console.log(`Adding to local storage with key ${obj.key}`);
 				addLocalStorage( obj.key , storeObj );
 			}
 
@@ -123,6 +126,15 @@
 		}
 
 		obj.key =  ( obj.key || obj.url );
+
+		if (obj.skipCDNCache) {
+			if (cacheInstance === '') {
+				obj.url = obj.url + '?_=' + Math.random().toString(36).substr(2, 5);
+			} else {
+				obj.url = obj.url + '?_=' + cacheInstance;
+			}
+		}
+
 		source = basket.get( obj.key );
 
 		obj.execute = obj.execute !== false;
@@ -286,6 +298,20 @@
 
 		getDefaultExpiration: function () {
 			return defaultExpiration;
+		},
+
+		setSkipCDNCache: function (skip) {
+			skipCDN = skip === true;
+			return skipCDN;
+		},
+
+		setCacheInstance: function (instance) {
+			cacheInstance = instance;
+			return cacheInstance;
+		},
+
+		getCacheInstance: function () {
+			return cacheInstance;
 		}
 	};
 
